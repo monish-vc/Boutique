@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment variables (contains secrets — never commit!)
+.env
+.env.local
+.env.production
+
+# Vite cache
+.vite/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.local
+.idea/
+.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*

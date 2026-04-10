@@ -57,7 +57,7 @@ export default function Footer() {
             <h4 className="font-display text-cream-100 text-base mb-4">Contact</h4>
             <div className="space-y-3 text-sm font-sans text-wine-300">
               <a
-                href={`mailto:${CONTACT.emails.primary}`}
+                href={`mailto:${CONTACT.email}`}
                 className="flex items-start gap-2 hover:text-cream-100 transition-colors"
               >
                 <FiMail className="mt-0.5 shrink-0" size={14} />

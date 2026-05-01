@@ -1,0 +1,30 @@
+name: Keep Alive – Prevent Cold Starts
+
+on:
+  schedule:
+    # Runs every 14 minutes — keeps Vercel/Supabase warm proactively
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  ping:
+    name: Ping Production Site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping Vercel deployment
+        run: |
+          echo "🏓 Pinging Sri Sri Boutique..."
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5 \
+            "${{ secrets.VERCEL_PRODUCTION_URL }}")
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Site is alive and healthy."
+          else
+            echo "⚠️  Unexpected status $STATUS — site may be down."
+            exit 1
+          fi

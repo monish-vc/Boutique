@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
+import { withRetry, isTransientError } from '../lib/retry';
 
 const useAuthStore = create((set, get) => ({
   user: null,
@@ -9,7 +10,10 @@ const useAuthStore = create((set, get) => ({
 
   initialize: async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await withRetry(
+        () => supabase.auth.getSession(),
+        { retries: 3, shouldRetry: isTransientError }
+      );
       if (session?.user) {
         await get().fetchProfile(session.user);
       }
@@ -62,13 +66,19 @@ const useAuthStore = create((set, get) => ({
   },
 
   signUp: async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await withRetry(
+      () => supabase.auth.signUp({ email, password }),
+      { retries: 2, shouldRetry: isTransientError }
+    );
     if (error) throw error;
     return data;
   },
 
   signIn: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await withRetry(
+      () => supabase.auth.signInWithPassword({ email, password }),
+      { retries: 2, shouldRetry: isTransientError }
+    );
     if (error) throw error;
     return data;
   },

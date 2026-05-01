@@ -10,6 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [emailExists, setEmailExists] = useState(false);
   const { signIn, signUp, user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -38,6 +39,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setEmailExists(false);
     if (!validate()) return;
 
     setLoading(true);
@@ -52,10 +54,28 @@ export default function Login() {
         navigate('/');
       }
     } catch (err) {
-      toast.error(err.message || 'Authentication failed');
+      const msg = err.message || '';
+      // Supabase returns this message when the email is already registered
+      if (
+        isSignUp &&
+        (msg.toLowerCase().includes('user already registered') ||
+          msg.toLowerCase().includes('already been registered') ||
+          msg.toLowerCase().includes('email already exists') ||
+          err.status === 422)
+      ) {
+        setEmailExists(true);
+      } else {
+        toast.error(msg || 'Authentication failed');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const switchToSignIn = () => {
+    setIsSignUp(false);
+    setEmailExists(false);
+    setErrors({});
   };
 
   return (
@@ -71,6 +91,25 @@ export default function Login() {
               : 'Sign in to your account'}
           </p>
         </div>
+
+        {emailExists && (
+          <div className="mb-4 flex items-start gap-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3">
+            <span className="mt-0.5 text-amber-500 text-lg leading-none">⚠️</span>
+            <div className="flex-1 font-sans text-sm text-amber-800">
+              <p className="font-semibold">An account with this email already exists.</p>
+              <p className="mt-0.5">
+                Would you like to{' '}
+                <button
+                  type="button"
+                  onClick={switchToSignIn}
+                  className="font-semibold underline underline-offset-2 hover:text-amber-900"
+                >
+                  Sign In instead?
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}
